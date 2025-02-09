@@ -20,3 +20,13 @@ variable "INSTANCE_TYPE" {
 variable "USER" {
   default = "ec2-user"
 }
+
+variable "PUBLIC_KEY_PATH" {
+  description = "Path to the public SSH key file"
+  type        = string
+}
+
+variable "PRIVATE_KEY_PATH" {
+  description = "Path to the private SSH key file"
+  type        = string
+}

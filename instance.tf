@@ -1,6 +1,6 @@
 resource "aws_key_pair" "ssh-key" {
   key_name   = "ssh-key"
-  public_key = file(env("DOC_CLASS_EC2_PUBLIC_KEY"))
+  public_key = file(var.PUBLIC_KEY_PATH)
 }
 
 resource "aws_instance" "doc-classification" {
@@ -29,7 +29,7 @@ resource "aws_instance" "doc-classification" {
 
   connection {
     user        = var.USER
-    private_key = file(env("DOC_CLASS_EC2_PRIVATE_KEY"))
+    private_key = file(var.PRIVATE_KEY_PATH)
     host        = self.public_ip # Use public key of the instance
   }
 }
