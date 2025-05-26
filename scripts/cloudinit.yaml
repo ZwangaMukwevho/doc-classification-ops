@@ -1,0 +1,36 @@
+#cloud-config
+
+# 1) groups & users
+groups:
+  - ubuntu: [root,sys]
+  - hashicorp
+
+users:
+  - default
+  - name: terraform
+    gecos: Terraform CI user
+    shell: /bin/bash
+    primary_group: hashicorp
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    groups: users,admin
+    lock_passwd: false
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCvm7wYOdWrLdH+1IWtMrqbm84Ap3JDXXzSgiicIEE7Eb/zW7vB+bM/PECNzekRAuTHG1bFtYDmNN3qQg/ghouyWbAPq74twHW67dtyz9guNI2zdPGt6rClk3UjUZfXHWmw7ZiBBVUYfFZ25ANL44SmESmMaG3yFhQKtwq+jTNwKX0q8klcgz3c/PfkJOW0bCQy48Z2pdbLIskzeRHV5CgwoO9GlRcEmRC++M5jH35poRuXBY52e0SJ+AEYSiE5NGHBlwwK4VC5LZgpmqeNOlrODBPFCoW7KiytAWof7T2u6GxFzI8bP2laYSUzPmRUF1ef26EGjKsHzhB69bCKyX5YCuybkqjgu3CcSWDtTQkv9xPA4QgBcwW+JKdwWF3GhWqJAD6ugS9fIUu5pSexkoLhIkMVzAQR1UV2iAABfLpN3R+Ep7teZkRYAAADhIkCcZAbyAdfbBLUmU4d4pTbOQjQSUvqGeLWF6Wa0fyT5MQ8dkgg8bRmv8fMF46X39y0TrU= your_email@example.com
+
+# 2) packages to install
+packages:
+  - git
+  - nginx
+  - certbot
+  - python3-certbot-nginx
+  - golang
+
+# 3) commands to run in order on first boot
+runcmd:
+  - ufw allow 'Nginx Full'
+  - ufw allow OpenSSH
+  - ufw --force enable
+  - sudo su - terraform -c "mkdir -p /home/terraform/go && chown terraform:hashicorp /home/terraform/go"
+  - sudo -i -u terraform bash -lc "export GOPATH=/home/terraform/go; go install github.com/hashicorp/learn-go-webapp-demo@latest"
+  - sudo -i -u terraform curl --output-dir /home/terraform \
+      --remote-name https://raw.githubusercontent.com/hashicorp/learn-go-webapp-demo/master/index.html
