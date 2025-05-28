@@ -9,12 +9,12 @@ variable "ZONE1" {
 variable "AMIS" {
   type = map(any)
   default = {
-    af-south-1 = "ami-0c0df7f9a9a721ef4"
+    af-south-1 = "ami-0b7e05c6022fc830b"
   }
 }
 
 variable "INSTANCE_TYPE" {
-  default = "t2.micro"
+  default = "t3.nano"
 }
 
 variable "USER" {
