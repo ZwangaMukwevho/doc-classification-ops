@@ -1,7 +1,7 @@
 provider "aws" {
   region = var.REGION
 
-  # ← This is the only place endpoint overrides belong
+  # Comment out the below if you want to use localstack endpoints for testing terraform locally
   # endpoints {
   #   ec2 = "http://localhost:4566"
   #   iam = "http://localhost:4566"
