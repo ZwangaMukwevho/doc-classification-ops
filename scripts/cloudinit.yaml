@@ -1,5 +1,9 @@
 #cloud-config
 
+# 0) Update & upgrade the OS before installing packages
+apt_update: true
+apt_upgrade: true
+
 # 1) groups & users
 groups:
   - ubuntu: [root,sys]
@@ -14,23 +18,42 @@ users:
     sudo: ALL=(ALL) NOPASSWD:ALL
     groups: users,admin
     lock_passwd: false
-    ssh_authorized_keys:
-      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCvm7wYOdWrLdH+1IWtMrqbm84Ap3JDXXzSgiicIEE7Eb/zW7vB+bM/PECNzekRAuTHG1bFtYDmNN3qQg/ghouyWbAPq74twHW67dtyz9guNI2zdPGt6rClk3UjUZfXHWmw7ZiBBVUYfFZ25ANL44SmESmMaG3yFhQKtwq+jTNwKX0q8klcgz3c/PfkJOW0bCQy48Z2pdbLIskzeRHV5CgwoO9GlRcEmRC++M5jH35poRuXBY52e0SJ+AEYSiE5NGHBlwwK4VC5LZgpmqeNOlrODBPFCoW7KiytAWof7T2u6GxFzI8bP2laYSUzPmRUF1ef26EGjKsHzhB69bCKyX5YCuybkqjgu3CcSWDtTQkv9xPA4QgBcwW+JKdwWF3GhWqJAD6ugS9fIUu5pSexkoLhIkMVzAQR1UV2iAABfLpN3R+Ep7teZkRYAAADhIkCcZAbyAdfbBLUmU4d4pTbOQjQSUvqGeLWF6Wa0fyT5MQ8dkgg8bRmv8fMF46X39y0TrU= your_email@example.com
+    
 
-# 2) packages to install
+# 2) packages to install via apt
 packages:
   - git
   - nginx
   - certbot
   - python3-certbot-nginx
+  - ufw
   - golang
+  # We'll install Node.js 20 via NodeSource in runcmd.
+  # However, include a dummy nodejs package so apt doesn't complain—install will be replaced by NodeSource.
+  - nodejs
 
 # 3) commands to run in order on first boot
 runcmd:
+  # ---- Firewall setup ----
   - ufw allow 'Nginx Full'
   - ufw allow OpenSSH
   - ufw --force enable
+
+  # ---- Node.js & NPM (via NodeSource) ----
+  - curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+  - apt-get install -y nodejs
+
+  # ---- Install PM2 globally ----
+  - npm install -g pm2
+
+  # ---- (Optional) Verify PM2 is installed ----
+  - pm2 --version
+
+  # ---- Set up Terraform user’s Go workspace ----
   - sudo su - terraform -c "mkdir -p /home/terraform/go && chown terraform:hashicorp /home/terraform/go"
   - sudo -i -u terraform bash -lc "export GOPATH=/home/terraform/go; go install github.com/hashicorp/learn-go-webapp-demo@latest"
-  - sudo -i -u terraform curl --output-dir /home/terraform \
-      --remote-name https://raw.githubusercontent.com/hashicorp/learn-go-webapp-demo/master/index.html
+  - sudo -i -u terraform curl --output-dir /home/terraform --remote-name https://raw.githubusercontent.com/hashicorp/learn-go-webapp-demo/master/index.html
+
+  # ---- (Optional) Start NGINX so you can confirm it’s running ----
+  - systemctl enable nginx
+  - systemctl start nginx
